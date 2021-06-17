@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "helpers.h"
+#include "util.h"
 
 int main(int argc, char *argv[])
 {
@@ -86,6 +86,12 @@ int main(int argc, char *argv[])
     // Filter image
     switch (filter)
     {
+        // Grayscale
+        case 'g':
+            grayscale(height, width, image);
+            break;
+
+        /*
         // Blur
         case 'b':
             blur(height, width, image);
@@ -96,10 +102,7 @@ int main(int argc, char *argv[])
             edges(height, width, image);
             break;
 
-        // Grayscale
-        case 'g':
-            grayscale(height, width, image);
-            break;
+        
 
         // Reflect
         case 'r':
@@ -108,8 +111,9 @@ int main(int argc, char *argv[])
 
         //Sepia
         case 's':
-            sepia(height, width, image);
+            //sepia(height, width, image);
             break;
+        */
     }
 
     //Write the image into the output file
