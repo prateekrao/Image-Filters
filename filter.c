@@ -2,16 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "util.h"
+#include "helpers.h"
 
 int main(int argc, char *argv[])
 {
+
     // Define allowable filters
     char *filters = "begr";
 
     // Get filter flag and check validity
     char filter = getopt(argc, argv, filters);
-
     if (filter == '?')
     {
         fprintf(stderr, "Invalid filter.\n");
@@ -37,61 +37,69 @@ int main(int argc, char *argv[])
     char *outfile = argv[optind + 1];
 
     // Open input file
-    FILE *in = fopen(infile, "r");
-    if (in == NULL)
+    FILE *inptr = fopen(infile, "r");
+    if (inptr == NULL)
     {
         fprintf(stderr, "Could not open %s.\n", infile);
         return 4;
     }
 
     // Open output file
-    FILE *out = fopen(outfile, "w");
-    if (out == NULL)
+    FILE *outptr = fopen(outfile, "w");
+    if (outptr == NULL)
     {
-        fclose(in);
+        fclose(inptr);
         fprintf(stderr, "Could not create %s.\n", outfile);
         return 5;
     }
 
-    // Read input image BITMAPFILEHEADER
-
+    // Read infile's BITMAPFILEHEADER
     BITMAPFILEHEADER bf;
-    fread(&bf, sizeof(BITMAPFILEHEADER), 1, in);
+    fread(&bf, sizeof(BITMAPFILEHEADER), 1, inptr);
 
-
-    // Read input image BITMAPINFOHEADER
+    // Read infile's BITMAPINFOHEADER
     BITMAPINFOHEADER bi;
-    fread(&bi, sizeof(BITMAPINFOHEADER), 1, in);
+    fread(&bi, sizeof(BITMAPINFOHEADER), 1, inptr);
+
+    // Ensure infile is (likely) a 24-bit uncompressed BMP 4.0
+    if (bf.bfType != 0x4d42 || bf.bfOffBits != 54 || bi.biSize != 40 ||
+        bi.biBitCount != 24 || bi.biCompression != 0)
+    {
+        fclose(outptr);
+        fclose(inptr);
+        fprintf(stderr, "Unsupported file format.\n");
+        return 6;
+    }
 
     int height = abs(bi.biHeight);
     int width = bi.biWidth;
 
+    // Allocate memory for image
     RGBTRIPLE(*image)[width] = calloc(height, width * sizeof(RGBTRIPLE));
-
     if (image == NULL)
     {
         fprintf(stderr, "Not enough memory to store image.\n");
-        fclose(out);
-        fclose(in);
+        fclose(outptr);
+        fclose(inptr);
         return 7;
     }
+
+    // Determine padding for scanlines
+    int padding = (4 - (width * sizeof(RGBTRIPLE)) % 4) % 4;
 
     // Iterate over infile's scanlines
     for (int i = 0; i < height; i++)
     {
         // Read row into pixel array
-        fread(image[i], sizeof(RGBTRIPLE), width, in);
+        fread(image[i], sizeof(RGBTRIPLE), width, inptr);
+
+        // Skip over padding
+        fseek(inptr, padding, SEEK_CUR);
     }
 
     // Filter image
     switch (filter)
     {
-        // Grayscale
-        case 'g':
-            grayscale(height, width, image);
-            break;
-
-        /*
         // Blur
         case 'b':
             blur(height, width, image);
@@ -102,42 +110,44 @@ int main(int argc, char *argv[])
             edges(height, width, image);
             break;
 
-        
+        // Grayscale
+        case 'g':
+            grayscale(height, width, image);
+            break;
 
         // Reflect
         case 'r':
             reflect(height, width, image);
             break;
-
-        //Sepia
-        case 's':
-            //sepia(height, width, image);
-            break;
-        */
     }
 
-    //Write the image into the output file
-    fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, out);
+    // Write outfile's BITMAPFILEHEADER
+    fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
 
     // Write outfile's BITMAPINFOHEADER
-    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, out);
+    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
 
     // Write new pixels to outfile
     for (int i = 0; i < height; i++)
     {
         // Write row to outfile
-        fwrite(image[i], sizeof(RGBTRIPLE), width, out);
+        fwrite(image[i], sizeof(RGBTRIPLE), width, outptr);
+
+        // Write padding at end of row
+        for (int k = 0; k < padding; k++)
+        {
+            fputc(0x00, outptr);
+        }
     }
 
-
+    // Free memory for image
     free(image);
 
-    // Close input image file
-    fclose(in);
+    // Close infile
+    fclose(inptr);
 
-    // Close output image file
-    fclose(out);
+    // Close outfile
+    fclose(outptr);
 
     return 0;
 }
-

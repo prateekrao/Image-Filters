@@ -1,4 +1,4 @@
-#include "util.h"
+#include "helpers.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -17,7 +17,9 @@ void grayscale(int height, int width, RGBTRIPLE image[height][width])
             image[i][j].rgbtGreen = roundf(rounded);
             image[i][j].rgbtRed = roundf(rounded);
         }
+
     }
+
     return;
 }
 
@@ -63,7 +65,6 @@ void reflect(int height, int width, RGBTRIPLE image[height][width])
     return;
 
 }
-
 
 // Blur image
 void blur(int height, int width, RGBTRIPLE image[height][width])

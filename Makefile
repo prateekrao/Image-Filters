@@ -1,2 +1,2 @@
 filter:
-	gcc -o filter filter.c functions.c
+	gcc -o filter filter.c helpers.c
