@@ -26,44 +26,19 @@ void grayscale(int height, int width, RGBTRIPLE image[height][width])
 // Reflect image horizontally
 void reflect(int height, int width, RGBTRIPLE image[height][width])
 {
-    RGBTRIPLE swap;
-    if (width % 2 != 0)
+    // Loop through rows
+    for (int i = 0; i < height; i++)
     {
-        for (int i = 0; i < height; i++)
+        // Loop through columns
+        for (int j = 0; j < width / 2; j++)
         {
-            // printf("[i][0]Before: %i\n[i][width]Before: %i\n", image[i][0].rgbtRed, image[i][width - 1].rgbtRed);
-            swap = image[i][0];
-            image[i][0] = image[i][width - 1];
-            image[i][width - 1] = swap;
-            // printf("[i][0]After: %i\n[i][width]After: %i\n", image[i][0].rgbtRed, image[i][width - 1].rgbtRed);
-            for (int j = 1; j < ((width / 2)  + 0.5); j++)
-            {
-                swap = image[i][j];
-                image[i][j] = image[i][(width - 1) - j];
-                image[i][(width - 1) - j] = swap;
-            }
+            // Reflect pixels
+            RGBTRIPLE temp = image[i][j];
+            image[i][j] = image[i][width - (j + 1)];
+            image[i][width - (j + 1)] = temp;
         }
     }
-    else
-    {
-        for (int i = 0; i < height; i++)
-        {
-            // printf("[i][0]Before: %i\n[i][width]Before: %i\n", image[i][0].rgbtRed, image[i][width - 1].rgbtRed);
-            swap = image[i][0];
-            image[i][0] = image[i][width - 1];
-            image[i][width - 1] = swap;
-            // printf("[i][0]After: %i\n[i][width]After: %i\n", image[i][0].rgbtRed, image[i][width - 1].rgbtRed);
-            for (int j = 1; j < (width / 2); j++)
-            {
-                swap = image[i][j];
-                image[i][j] = image[i][(width - 1) - j];
-                image[i][(width - 1) - j] = swap;
-            }
-        }
-    }
-
     return;
-
 }
 
 // Blur image
