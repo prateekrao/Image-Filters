@@ -67,110 +67,58 @@ void reflect(int height, int width, RGBTRIPLE image[height][width])
 }
 
 // Blur image
+// Blur image
 void blur(int height, int width, RGBTRIPLE image[height][width])
 {
-    typedef struct
-    {
-        int Red;
-        int Blue;
-        int Green;
-    }
-    temp;
-    temp image2[height][width];
-
+    // Create temp array
+    RGBTRIPLE temp[height][width];
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
         {
-            float averageR = image[i][j].rgbtRed;
-            float averageG = image[i][j].rgbtGreen;
-            float averageB = image[i][j].rgbtBlue;
-            int counter = 1;
-
-            // 7
-            if (i != 0)
-            {
-                averageR += image[i - 1][j].rgbtRed;
-                averageB += image[i - 1][j].rgbtBlue;
-                averageG += image[i - 1][j].rgbtGreen;
-                counter++;
-            }
-            //4
-            if (j != 0)
-            {
-                averageR += image[i][j - 1].rgbtRed;
-                averageB += image[i][j - 1].rgbtBlue;
-                averageG += image[i][j - 1].rgbtGreen;
-                counter++;
-            }
-            //2
-            if (i != (height - 1))
-            {
-                averageR += image[i + 1][j].rgbtRed;
-                averageB += image[i + 1][j].rgbtBlue;
-                averageG += image[i + 1][j].rgbtGreen;
-                counter++;
-            }
-            //5
-            if (j != (width - 1))
-            {
-                averageR += image[i][j + 1].rgbtRed;
-                averageB += image[i][j + 1].rgbtBlue;
-                averageG += image[i][j + 1].rgbtGreen;
-                counter++;
-            }
-            //1
-            if ((i != 0) && (j != 0))
-            {
-                averageR += image[i - 1][j - 1].rgbtRed;
-                averageB += image[i - 1][j - 1].rgbtBlue;
-                averageG += image[i - 1][j - 1].rgbtGreen;
-                counter++;
-            }
-            //3
-            if ((i != 0) && (j != (width - 1)))
-            {
-                averageR += image[i - 1][j + 1].rgbtRed;
-                averageB += image[i - 1][j + 1].rgbtBlue;
-                averageG += image[i - 1][j + 1].rgbtGreen;
-                counter++;
-            }
-            //6
-            if ((i != (height - 1)) && (j != 0))
-            {
-                averageR += image[i + 1][j - 1].rgbtRed;
-                averageB += image[i + 1][j - 1].rgbtBlue;
-                averageG += image[i + 1][j - 1].rgbtGreen;
-                counter++;
-            }
-            //8
-            if ((i != (height - 1)) && (j != (width - 1)))
-            {
-                averageR += image[i + 1][j + 1].rgbtRed;
-                averageB += image[i + 1][j + 1].rgbtBlue;
-                averageG += image[i + 1][j + 1].rgbtGreen;
-                counter++;
-            }
-
-            averageR = averageR / counter;
-            averageB = averageB / counter;
-            averageG = averageG / counter;
-            image2[i][j].Red = roundf(averageR);
-            image2[i][j].Blue = roundf(averageB);
-            image2[i][j].Green = roundf(averageG);
+            temp[i][j] = image[i][j];
         }
     }
+     // Loop through rows
     for (int i = 0; i < height; i++)
     {
+        // Loop through columns
         for (int j = 0; j < width; j++)
         {
-            image[i][j].rgbtRed = image2[i][j].Red;
-            image[i][j].rgbtBlue = image2[i][j].Blue;
-            image[i][j].rgbtGreen = image2[i][j].Green;
+            // Initialise values
+            float sum_red;
+            float sum_blue;
+            float sum_green;
+            int counter;
+            sum_red = sum_blue = sum_green = counter = 0;
+            // For each pixel, loop vertical and horizontal
+            for (int k = -1; k < 2; k++)
+            {
+                for (int l = -1; l < 2; l++)
+                {
+                    // Check if pixel is outside rows
+                    if (i + k < 0 || i + k >= height)
+                    {
+                        continue;
+                    }
+                    // Check if pixel is outside columns
+                    if (j + l < 0 || j + l >= width)
+                    {
+                        continue;
+                    }
+                    // Otherwise add to sums
+                    sum_red += temp[i + k][j + l].rgbtRed;
+                    sum_blue += temp[i + k][j + l].rgbtBlue;
+                    sum_green += temp[i + k][j + l].rgbtGreen;
+                    counter++;
+                }
+            }
+            // Get average and blur image
+            image[i][j].rgbtRed = round(sum_red / counter);
+            image[i][j].rgbtGreen = round(sum_green / counter);
+            image[i][j].rgbtBlue = round(sum_blue / counter);
         }
     }
-
-
     return;
 }
 
